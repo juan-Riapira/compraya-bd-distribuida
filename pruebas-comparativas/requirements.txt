@@ -1,0 +1,7 @@
+locust==2.47.0
+requests
+httpx==0.28.1
+matplotlib==3.11.2
+asyncpg==0.32.0
+pymongo==4.20.0
+redis==8.1.0

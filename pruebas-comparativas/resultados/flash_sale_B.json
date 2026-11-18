@@ -1,0 +1,45 @@
+{
+  "system": "B",
+  "product": "P00001",
+  "rounds": [
+    {
+      "buyers": 50,
+      "orders_ok": 49,
+      "payment_declined": 1,
+      "sold_out": 0,
+      "errors_5xx": 0,
+      "wall_time_s": 0.69,
+      "checkouts_per_s": 70.7,
+      "latency_p50_ms": 511,
+      "latency_p95_ms": 665,
+      "latency_max_ms": 683,
+      "latency_mean_ok_ms": 478
+    },
+    {
+      "buyers": 100,
+      "orders_ok": 99,
+      "payment_declined": 1,
+      "sold_out": 0,
+      "errors_5xx": 0,
+      "wall_time_s": 2.4,
+      "checkouts_per_s": 41.3,
+      "latency_p50_ms": 1330,
+      "latency_p95_ms": 2225,
+      "latency_max_ms": 2306,
+      "latency_mean_ok_ms": 1313
+    },
+    {
+      "buyers": 200,
+      "orders_ok": 196,
+      "payment_declined": 4,
+      "sold_out": 0,
+      "errors_5xx": 0,
+      "wall_time_s": 5.82,
+      "checkouts_per_s": 33.7,
+      "latency_p50_ms": 4352,
+      "latency_p95_ms": 5536,
+      "latency_max_ms": 5748,
+      "latency_mean_ok_ms": 3845
+    }
+  ]
+}

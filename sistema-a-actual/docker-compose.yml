@@ -1,0 +1,35 @@
+# Sistema A — arquitectura actual de CompraYa:
+# una API y UN SOLO servidor PostgreSQL que atiende todo el tráfico.
+name: compraya-sistema-a
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: compraya
+      POSTGRES_PASSWORD: compraya
+      POSTGRES_DB: compraya
+    command: ["postgres", "-c", "max_connections=200"]
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compraya -d compraya"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://compraya:compraya@postgres:5432/compraya
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

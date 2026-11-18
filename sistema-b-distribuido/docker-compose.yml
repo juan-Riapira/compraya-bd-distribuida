@@ -1,0 +1,155 @@
+# Sistema B — arquitectura propuesta para CompraYa
+#
+#   cliente ─► nginx ─► api-1 / api-2 / api-3 ─┬─► mongos-1 / mongos-2 ─┬─► shard1rs (NORTE: CO, MX, PE) x3 réplicas
+#                                                │                        ├─► shard2rs (SUR: CL, AR)      x3 réplicas
+#                                                │                        └─► cfgrs (metadatos del clúster)
+#                                                └─► redis-primary ──► redis-replica
+name: compraya-sistema-b
+
+x-mongod-shard: &mongod-shard
+  image: mongo:8.0
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+    interval: 5s
+    timeout: 5s
+    retries: 30
+
+x-api: &api
+  build: .
+  restart: unless-stopped
+  env_file: .env
+  environment: &api-env
+    MONGO_URI: mongodb://mongos-1:27017,mongos-2:27017/?retryWrites=true
+    REDIS_URL: redis://redis-primary:6379/0
+  depends_on:
+    cluster-init-sharding:
+      condition: service_completed_successfully
+    redis-primary:
+      condition: service_healthy
+
+x-cluster-env: &cluster-env
+  CONFIG_RS: cfgrs/cfg1:27017
+  SHARDS: shard1rs/shard1-a:27017,shard1-b:27017,shard1-c:27017;shard2rs/shard2-a:27017,shard2-b:27017,shard2-c:27017
+  MONGOS_URI: mongodb://mongos-1:27017
+  SHARD_ZONES: shard1rs:NORTE,shard2rs:SUR
+
+services:
+  # ---------------- MongoDB: config servers ----------------
+  cfg1:
+    <<: *mongod-shard
+    command: ["mongod", "--configsvr", "--replSet", "cfgrs", "--port", "27017", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes: [cfg1:/data/db]
+
+  # ---------------- MongoDB: shard 1 (zona NORTE) ----------------
+  shard1-a:
+    <<: *mongod-shard
+    command: ["mongod", "--shardsvr", "--replSet", "shard1rs", "--port", "27017", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes: [shard1-a:/data/db]
+  shard1-b:
+    <<: *mongod-shard
+    command: ["mongod", "--shardsvr", "--replSet", "shard1rs", "--port", "27017", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes: [shard1-b:/data/db]
+  shard1-c:
+    <<: *mongod-shard
+    command: ["mongod", "--shardsvr", "--replSet", "shard1rs", "--port", "27017", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes: [shard1-c:/data/db]
+
+  # ---------------- MongoDB: shard 2 (zona SUR) ----------------
+  shard2-a:
+    <<: *mongod-shard
+    command: ["mongod", "--shardsvr", "--replSet", "shard2rs", "--port", "27017", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes: [shard2-a:/data/db]
+  shard2-b:
+    <<: *mongod-shard
+    command: ["mongod", "--shardsvr", "--replSet", "shard2rs", "--port", "27017", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes: [shard2-b:/data/db]
+  shard2-c:
+    <<: *mongod-shard
+    command: ["mongod", "--shardsvr", "--replSet", "shard2rs", "--port", "27017", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes: [shard2-c:/data/db]
+
+  # Paso 1: iniciar los replica sets (corre una vez y termina)
+  cluster-init-rs:
+    build: .
+    command: ["python", "-m", "scripts.init_cluster", "--step", "replicasets"]
+    environment: *cluster-env
+    restart: "no"
+    depends_on:
+      cfg1: {condition: service_healthy}
+      shard1-a: {condition: service_healthy}
+      shard1-b: {condition: service_healthy}
+      shard1-c: {condition: service_healthy}
+      shard2-a: {condition: service_healthy}
+      shard2-b: {condition: service_healthy}
+      shard2-c: {condition: service_healthy}
+
+  # ---------------- Routers mongos (2, sin punto único de falla) ----------------
+  mongos-1:
+    <<: *mongod-shard
+    command: ["mongos", "--configdb", "cfgrs/cfg1:27017", "--bind_ip_all", "--port", "27017"]
+    ports: ["27017:27017"]
+    depends_on:
+      cluster-init-rs: {condition: service_completed_successfully}
+  mongos-2:
+    <<: *mongod-shard
+    command: ["mongos", "--configdb", "cfgrs/cfg1:27017", "--bind_ip_all", "--port", "27017"]
+    depends_on:
+      cluster-init-rs: {condition: service_completed_successfully}
+
+  # Paso 2: registrar shards, zonas y shard keys (corre una vez y termina)
+  cluster-init-sharding:
+    build: .
+    command: ["python", "-m", "scripts.init_cluster", "--step", "sharding"]
+    environment: *cluster-env
+    restart: "no"
+    depends_on:
+      mongos-1: {condition: service_healthy}
+
+  # ---------------- Redis (caché, carritos, stock caliente) ----------------
+  redis-primary:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "volatile-lru"]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis-replica:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--replicaof", "redis-primary", "6379", "--appendonly", "yes"]
+    depends_on:
+      redis-primary: {condition: service_healthy}
+
+  # ---------------- API: 3 réplicas sin estado ----------------
+  api-1:
+    <<: *api
+    environment: {<<: *api-env, INSTANCE_ID: api-1}
+  api-2:
+    <<: *api
+    environment: {<<: *api-env, INSTANCE_ID: api-2}
+  api-3:
+    <<: *api
+    environment: {<<: *api-env, INSTANCE_ID: api-3}
+
+  # ---------------- Balanceador de carga ----------------
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports: ["8002:80"]
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on: [api-1, api-2, api-3]
+
+volumes:
+  cfg1:
+  shard1-a:
+  shard1-b:
+  shard1-c:
+  shard2-a:
+  shard2-b:
+  shard2-c:
+  redis-data:

@@ -1,0 +1,16 @@
+# Simulador de pruebas A vs B. Se levanta DESPUÉS de los sistemas A y B.
+# Llega a ellos por los puertos publicados en el equipo (host.docker.internal)
+# y usa el socket de Docker para apagar/encender nodos en el escenario "caída".
+name: compraya-simulador
+
+services:
+  simulador:
+    build: .
+    env_file: .env
+    ports:
+      - "8010:8010"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # necesario en Linux; inofensivo en Windows/Mac
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/srv/data

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CompraYa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#catalogo" aria-label="CompraYa, ir al catálogo">CompraYa</a>
+    <span class="system-badge" id="system-badge">Conectando…</span>
+
+    <nav class="tabs" aria-label="Secciones">
+      <a href="#catalogo" data-tab="catalogo">Catálogo</a>
+      <a href="#pedidos" data-tab="pedidos">Mis pedidos</a>
+    </nav>
+
+    <form class="user-picker" id="user-form">
+      <label for="user-id">Cliente</label>
+      <input id="user-id" name="user" value="U00001" maxlength="6" autocomplete="off" spellcheck="false">
+      <span class="user-name" id="user-name"></span>
+    </form>
+
+    <button class="cart-button" id="cart-open" type="button" aria-controls="cart-drawer">
+      Carrito <span class="cart-count" id="cart-count">0</span>
+    </button>
+  </header>
+
+  <main>
+    <section id="view-catalogo" class="view" aria-labelledby="catalog-title">
+      <div class="catalog-head">
+        <h1 id="catalog-title">Tecnología para toda Latinoamérica</h1>
+        <p class="catalog-sub">Las ofertas del día concentran el tráfico del Black Friday. Mira cómo baja su stock mientras corre el simulador.</p>
+      </div>
+      <div class="filters" id="category-filters" role="toolbar" aria-label="Filtrar por categoría"></div>
+      <div class="product-grid" id="product-grid" aria-live="polite"></div>
+      <div class="pager">
+        <button type="button" id="prev-page">Anterior</button>
+        <span id="page-label">Página 1</span>
+        <button type="button" id="next-page">Siguiente</button>
+      </div>
+    </section>
+
+    <section id="view-pedidos" class="view" hidden aria-labelledby="orders-title">
+      <h1 id="orders-title">Mis pedidos</h1>
+      <div id="orders-list" class="orders-list"></div>
+    </section>
+  </main>
+
+  <aside class="drawer" id="cart-drawer" aria-hidden="true" aria-labelledby="cart-title">
+    <div class="drawer-head">
+      <h2 id="cart-title">Tu carrito</h2>
+      <button type="button" class="ghost" id="cart-close" aria-label="Cerrar carrito">Cerrar</button>
+    </div>
+    <div id="cart-items" class="cart-items"></div>
+    <div class="drawer-foot">
+      <div class="cart-total"><span>Total</span><strong id="cart-total">$0</strong></div>
+      <button type="button" class="primary" id="checkout">Pagar ahora</button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <footer class="latency-bar" aria-live="polite">
+    <span class="latency-label">Tiempo de respuesta del servidor</span>
+    <ol class="latency-log" id="latency-log"></ol>
+  </footer>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <dialog id="product-dialog" class="product-dialog"></dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

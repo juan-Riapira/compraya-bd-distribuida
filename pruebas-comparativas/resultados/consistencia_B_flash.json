@@ -1,0 +1,10 @@
+{
+  "system": "B",
+  "orders": 196,
+  "units_sold": 196,
+  "negative_stock_products": 0,
+  "invariant_violations": 0,
+  "hot_products_sold_out": 0,
+  "redis_vs_mongo_diffs": 0,
+  "consistent": true
+}

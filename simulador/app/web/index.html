@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador CompraYa · A vs B</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="title-block">
+      <h1>Simulador de pruebas</h1>
+      <p>CompraYa · Sistema actual contra sistema distribuido, con el mismo tráfico y los mismos datos.</p>
+    </div>
+    <div class="targets" id="targets" aria-live="polite"></div>
+  </header>
+
+  <main class="layout">
+    <section class="setup" aria-labelledby="setup-title">
+      <h2 id="setup-title">Preparar la prueba</h2>
+
+      <fieldset class="scenario-picker" id="scenario-picker">
+        <legend>Escenario</legend>
+      </fieldset>
+
+      <form id="params-form" class="params"></form>
+
+      <fieldset class="systems">
+        <legend>Sistemas</legend>
+        <label class="sys sys-a"><input type="checkbox" name="system" value="A" checked> Sistema A</label>
+        <label class="sys sys-b"><input type="checkbox" name="system" value="B" checked> Sistema B</label>
+        <p class="hint">Se prueban uno después del otro para que no compitan por el mismo equipo.</p>
+      </fieldset>
+
+      <div class="run-actions">
+        <button type="button" class="primary" id="start">Iniciar simulación</button>
+        <button type="button" class="secondary" id="cancel" hidden>Detener</button>
+      </div>
+      <p class="form-error" id="form-error" role="alert"></p>
+    </section>
+
+    <section class="live" aria-labelledby="live-title">
+      <div class="live-head">
+        <h2 id="live-title">En vivo</h2>
+        <span class="run-status" id="run-status">Sin simulación en curso</span>
+      </div>
+
+      <div class="charts">
+        <figure class="chart-box">
+          <figcaption id="chart-1-title">Peticiones respondidas por segundo</figcaption>
+          <canvas id="chart-throughput" aria-label="Peticiones por segundo de A y B" role="img"></canvas>
+        </figure>
+        <figure class="chart-box">
+          <figcaption>Latencia p95 de las respondidas (ms)</figcaption>
+          <canvas id="chart-latency" aria-label="Latencia p95 de A y B" role="img"></canvas>
+        </figure>
+        <figure class="chart-box wide">
+          <figcaption id="chart-3-title">Compras completadas y fallas técnicas por segundo</figcaption>
+          <canvas id="chart-outcomes" aria-label="Compras completadas y fallas por segundo" role="img"></canvas>
+        </figure>
+      </div>
+
+      <ol class="event-log" id="event-log" aria-live="polite"></ol>
+
+      <div class="results" id="results" hidden>
+        <h2>Resultado</h2>
+        <p class="verdict" id="verdict"></p>
+        <table class="compare" id="compare-table"></table>
+      </div>
+    </section>
+  </main>
+
+  <section class="history" aria-labelledby="history-title">
+    <h2 id="history-title">Historial</h2>
+    <table class="history-table" id="history"></table>
+  </section>
+
+  <script src="js/lib/chart.umd.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
