@@ -4,7 +4,7 @@ Redis actúa como compuerta rápida para el checkout: la reserva de TODOS los
 productos del carrito se hace en un script Lua que Redis ejecuta de forma
 atómica (nadie más corre en medio). Así no hay bloqueos de fila ni esperas,
 y nunca se vende más de lo que hay. MongoDB sigue siendo la fuente de verdad
-y confirma el descuento dentro de su transacción.
+y confirma el descuento con un $inc condicionado (paso 5 de la saga).
 """
 from redis.asyncio import Redis
 
