@@ -14,6 +14,14 @@ para compararlos con datos reales:
 | [`simulador/`](simulador/) | **Panel web de pruebas en vivo**: Black Friday, venta relámpago y caída de un nodo contra A y B |
 | [`pruebas-comparativas/`](pruebas-comparativas/) | Las mismas pruebas por línea de comandos (Locust) + gráficas para la presentación |
 
+## Arquitectura
+
+| Sistema A (actual) | Sistema B (propuesto) |
+|---|---|
+| ![Sistema A](docs/arquitectura/sistema_A.png) | ![Sistema B](docs/arquitectura/sistema_B.png) |
+
+Los archivos `.excalidraw` de `docs/arquitectura/` se abren y editan en https://excalidraw.com.
+
 ## Resultados (corrida incluida, 1 máquina de 2 núcleos)
 
 | Prueba | A · PostgreSQL único | B · Distribuido |
