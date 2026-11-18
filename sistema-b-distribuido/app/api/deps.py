@@ -19,6 +19,7 @@ from app.repositories.cart_repository import CartRepository
 from app.repositories.idempotency_repository import IdempotencyRepository
 from app.repositories.order_repository import OrderRepository
 from app.repositories.product_repository import ProductRepository
+from app.repositories.redis_inspector_repository import RedisInspectorRepository
 from app.repositories.stock_repository import StockRepository
 from app.repositories.user_repository import UserRepository
 from app.services.admin_service import AdminService
@@ -26,6 +27,7 @@ from app.services.cart_service import CartService
 from app.services.catalog_service import CatalogService
 from app.services.checkout_service import CheckoutService
 from app.services.order_service import OrderService
+from app.services.redis_inspector_service import RedisInspectorService
 from app.services.user_service import UserService
 
 
@@ -101,3 +103,9 @@ def get_user_service(db: AsyncDatabase = Depends(get_db)) -> UserService:
 
 def get_admin_service(db: AsyncDatabase = Depends(get_db), redis: Redis = Depends(get_redis)) -> AdminService:
     return AdminService(db, redis, AdminRepository(db), StockRepository(redis))
+
+
+def get_redis_inspector_service(
+    redis: Redis = Depends(get_redis), settings: Settings = Depends(get_settings)
+) -> RedisInspectorService:
+    return RedisInspectorService(RedisInspectorRepository(redis), settings)

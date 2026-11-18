@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es" data-system="B">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redis en vivo · CompraYa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/redis-panel.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="CompraYa, volver a la tienda">CompraYa</a>
+    <span class="system-badge">Sistema B · Redis en vivo</span>
+  </header>
+
+  <main class="rp">
+    <div class="rp-head">
+      <h1>Lo que el Sistema B guarda en memoria</h1>
+      <p>Cada fila es una llave de Redis. La barra muestra cuánto le queda antes de que Redis la borre sola (TTL). Se actualiza cada segundo.</p>
+    </div>
+
+    <div class="rp-groups" id="rp-groups" role="tablist" aria-label="Grupos de llaves"></div>
+
+    <div class="rp-actions">
+      <form id="rp-probe" class="rp-probe">
+        <label for="rp-product">Consultar producto</label>
+        <input id="rp-product" value="P00001" maxlength="6" autocomplete="off" spellcheck="false">
+        <button type="submit">Consultar</button>
+        <span id="rp-probe-result" class="rp-probe-result" aria-live="polite"></span>
+      </form>
+      <button type="button" id="rp-clear" class="rp-clear">Vaciar caché del catálogo</button>
+    </div>
+
+    <div class="rp-layout">
+      <section class="rp-table-wrap" aria-labelledby="rp-table-title">
+        <h2 id="rp-table-title" class="rp-sr">Llaves del grupo</h2>
+        <table class="rp-table">
+          <thead><tr><th>Llave</th><th>Tipo</th><th>Vida restante</th><th>Valor guardado</th></tr></thead>
+          <tbody id="rp-rows"></tbody>
+        </table>
+        <p id="rp-empty" class="rp-empty" hidden></p>
+      </section>
+      <aside class="rp-log" aria-labelledby="rp-log-title">
+        <h2 id="rp-log-title">Expiradas o borradas</h2>
+        <ol id="rp-log-list"></ol>
+        <p id="rp-log-empty" class="rp-muted">Cuando una llave desaparece, aparece aquí con la hora.</p>
+      </aside>
+    </div>
+  </main>
+
+  <script type="module" src="js/redis-panel.js"></script>
+</body>
+</html>

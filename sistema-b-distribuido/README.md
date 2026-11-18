@@ -174,6 +174,20 @@ El código del navegador está en `app/web/` y es el mismo en A y B: `js/api.js`
 llama a la API), `js/state.js` (cliente y carrito), `js/views/` (catálogo, producto, carrito,
 pedidos) y `js/ui/` (avisos, medidor de stock, barra de latencia).
 
+## Panel "Redis en vivo"
+
+Abre <http://localhost:8002/redis.html> (o el enlace **Redis en vivo** de la tienda). Muestra cada llave
+de Redis con su tipo, su valor y una barra con el tiempo de vida restante (TTL), y se actualiza cada segundo:
+
+- **Productos** (`product:*`, 5 min): pulsa *Vaciar caché del catálogo*, consulta `P00001` y mira cómo
+  aparece la llave, baja el contador y desaparece sola (queda registrada en *Expiradas o borradas*).
+- **Stock** (`stock:*`, no vence), **Carritos** (`cart:*`, 7 días) e **Idempotencia** (`idem:*`, 24 h).
+
+Para verlo expirar en la exposición, levanta B con `PRODUCT_CACHE_TTL_S=30` en `.env`.
+Código: `repositories/redis_inspector_repository.py` (SCAN + TTL), `services/redis_inspector_service.py`,
+`api/routes/redis_panel.py` (`GET /admin/redis`, `DELETE /admin/redis/cache`) y `web/redis.html`.
+Se desactiva junto con `ADMIN_ENABLED=false`.
+
 ## Administración (la usa el simulador)
 
 | Método | Ruta | Descripción |
