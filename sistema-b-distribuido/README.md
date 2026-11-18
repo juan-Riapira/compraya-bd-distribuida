@@ -85,7 +85,10 @@ app/
 scripts/
 ├── init_cluster.py               # replica sets, shards, zonas y shard keys (idempotente)
 ├── seed.py                       # carga el mismo dataset que A + precalienta Redis
-└── reconcile_stock.py            # sincroniza stock Redis ← MongoDB
+├── reconcile_stock.py            # sincroniza stock Redis ← MongoDB
+└── etl_from_postgres.py          # ETL PostgreSQL (Sistema A) → MongoDB + Redis
+etl/                              # extract · transform · load · validate · pipeline
+tests/test_etl_transform.py       # pruebas de las transformaciones
 infra/nginx/nginx.conf            # balanceador least_conn con reintento en otra réplica
 ```
 
@@ -115,6 +118,39 @@ Simular la caída del primario del shard NORTE (la tienda sigue vendiendo):
 docker compose stop shard1-a     # se elige un nuevo primario en ~10 s
 docker compose start shard1-a
 ```
+
+## ETL: migrar los datos del Sistema A (PostgreSQL) al Sistema B
+
+`etl/` es un paquete aparte de la API, con un módulo por etapa:
+
+| Módulo | Tarea |
+|---|---|
+| `etl/extract.py` | Lee PostgreSQL en **una instantánea `REPEATABLE READ READ ONLY`** con cursores por lotes (no bloquea la tienda) |
+| `etl/transform.py` | Funciones puras: `NUMERIC` → centavos, categoría embebida en el producto, `orders + order_items + payments` → 1 documento, `country` del usuario como shard key, marca → `attributes` |
+| `etl/load.py` | MongoDB con `ReplaceOne(upsert=True)` (idempotente: se puede repetir) · Redis: `stock:{id}` y `cart:{usuario}` con TTL |
+| `etl/validate.py` | Compara conteos y sumas de control (productos, usuarios, pedidos, unidades en stock, ingresos en centavos, carritos) |
+| `etl/pipeline.py` | Orquesta E → T → L → V y arma el reporte |
+
+```bash
+# con el Sistema A corriendo y con datos
+ETL_SOURCE_DSN=postgresql://compraya:compraya@localhost:5432/compraya \
+ETL_TRUNCATE_TARGET=true python -m scripts.etl_from_postgres
+```
+
+Salida de una corrida real (237 pedidos hechos en el Sistema A):
+
+```
+Control            PostgreSQL   MongoDB/Redis  Estado
+products                2,000           2,000  OK
+users                   5,000           5,000  OK
+orders                    237             237  OK
+stock_units           551,909         551,909  OK
+revenue_cents      91,696,642      91,696,642  OK
+carts                      61              61  OK
+```
+
+Los pedidos migrados quedan en el shard de su región (CO/MX/PE → `shard1rs`, CL/AR → `shard2rs`).
+Pruebas de las transformaciones: `python -m pytest tests`.
 
 ## Despliegue parcial en la nube (opcional)
 

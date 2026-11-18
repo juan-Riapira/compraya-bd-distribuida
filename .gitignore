@@ -3,3 +3,4 @@ __pycache__/
 .env
 .venv/
 simulador/data/runs/*.json
+.pytest_cache/

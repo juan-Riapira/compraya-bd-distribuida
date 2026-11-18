@@ -20,6 +20,12 @@ para compararlos con datos reales:
 |---|---|
 | ![Sistema A](docs/arquitectura/sistema_A.png) | ![Sistema B](docs/arquitectura/sistema_B.png) |
 
+### ETL de migración (PostgreSQL → MongoDB + Redis)
+
+![ETL](docs/arquitectura/etl.png)
+
+Código en [`sistema-b-distribuido/etl/`](sistema-b-distribuido/etl/); se corre con `python -m scripts.etl_from_postgres`.
+
 Los archivos `.excalidraw` de `docs/arquitectura/` se abren y editan en https://excalidraw.com.
 
 ## Resultados (corrida incluida, 1 máquina de 2 núcleos)
